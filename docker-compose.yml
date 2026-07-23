@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: ${DATABASE_URL_DOCKER}
+    container_name: ai-workspace
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      NODE_ENV: ${MODE_ENV}
+      PORT: ${PORT}
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./uploads:/app/uploads     # ← ВОТ ЗДЕСЬ, ПРАВИЛЬНО
+    restart: on-failure
+    networks:
+      - hub-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >
+      sh -c "
+        echo 'Running Prisma migrations...' &&
+        npx prisma migrate deploy &&
+        echo 'Starting application...' &&
+        node dist/main.js
+      "
+
+  db:
+    image: postgres:16-alpine
+    container_name: ai-workspace-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ai-workspace
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - hub-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  hub-net:
+    driver: bridge
+
+volumes:
+  pgdata:
