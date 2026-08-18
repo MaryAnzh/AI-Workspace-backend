@@ -19,7 +19,7 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - ./uploads:/app/uploads     # ← ВОТ ЗДЕСЬ, ПРАВИЛЬНО
+      - /var/www/backend:/app
     restart: on-failure
     networks:
       - hub-net
@@ -46,7 +46,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - /var/www/db/postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - hub-net
@@ -59,6 +59,3 @@ services:
 networks:
   hub-net:
     driver: bridge
-
-volumes:
-  pgdata:
