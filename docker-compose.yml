@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        DATABASE_URL: ${DATABASE_URL}
     container_name: ai-workspace
     env_file: .env
     environment:
@@ -15,22 +13,13 @@ services:
       PORT: ${PORT}
     ports:
       - "4000:4000"
-    volumes:
-      - /var/www/backend:/app
     restart: on-failure
     networks:
       - hub-net
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     command: >
       sh -c "
-        echo 'Running Prisma migrations...' &&
         npx prisma migrate deploy &&
-        echo 'Starting application...' &&
-        node dist/main.js
+        node dist/src/main.js
       "
 
 networks:
