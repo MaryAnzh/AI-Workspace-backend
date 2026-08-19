@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ai-workspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file: .env
     environment:
       DATABASE_URL: ${DATABASE_URL}
